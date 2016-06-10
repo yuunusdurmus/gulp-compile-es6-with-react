@@ -3,14 +3,13 @@
  * ========================================================================== */
 
 var gulp 		 = require('gulp'),
-    browserify 	 = require('browserify'),
+    browserify 	         = require('browserify'),
     source 		 = require('vinyl-source-stream'),
     gutil 		 = require('gulp-util'),
-    babelify 	 = require('babelify'),
-    browserSync  = require('browser-sync').create(),
+    babelify		 = require('babelify'),
+    browserSync          = require('browser-sync').create(),
     sass 		 = require('gulp-sass'),
-	vendorsDep 	 = ['react', 'react-dom', 'react-router', 'axios'],
-	dependencies = ['react', 'react-dom', 'react-router'];
+    dependencies         = ['react', 'react-dom', 'react-router'];
 
 gulp.task('browser-sync', function() {
 	browserSync.init({
@@ -23,10 +22,10 @@ gulp.task('browser-sync', function() {
 });
 
 gulp.task('sass', function() {
-	gulp.src('./src/scss/*.scss')
-		.pipe(sass().on('error', gutil.log))
-		.pipe(gulp.dest('./dist/css'))
-		.pipe(browserSync.stream());
+	gulp.src('./src/scss/*.scss').
+		pipe(sass().on('error', gutil.log)).
+		pipe(gulp.dest('./dist/css')).
+		pipe(browserSync.stream());
 });
 
 gulp.task('react-compile', function() {
@@ -39,21 +38,21 @@ gulp.task('react-compile', function() {
   		appBundler.external(dep);
   	});
 
-	appBundler.transform("babelify", {compact: false, presets: ["es2015", "react"]})
-		.bundle().on('error',gutil.log)
-		.pipe(source('main.js'))
-		.pipe(gulp.dest('./dist/js/'))
-		.pipe(browserSync.stream());
+	appBundler.transform('babelify', {compact: false, presets: ['es2015', 'react']}).
+        bundle().on('error',gutil.log).
+		pipe(source('main.js')).
+		pipe(gulp.dest('./dist/js/')).
+		pipe(browserSync.stream());
 });
 
 gulp.task('vendors-bundle', function() {
 	browserify({
-		require: vendorsDep,
+		require: dependencies,
 		debug: true
-	})
-	.bundle().on('error', gutil.log)
-	.pipe(source('vendors.js'))
-	.pipe(gulp.dest('./dist/js/'))
+	}).
+    bundle().on('error', gutil.log).
+    pipe(source('vendors.js')).
+    pipe(gulp.dest('./dist/js/'))
 });
 
 gulp.task('watch',function() {
@@ -63,28 +62,44 @@ gulp.task('watch',function() {
 });
 
 gulp.task('copy-images', function() {
-	gulp.src('./src/images/**/*.*').
-	pipe(gulp.dest('./dist/img/'));
+	gulp.src('./static/images/**/*.*').
+	pipe(gulp.dest('./dist/images/'));
 	browserSync.reload;
-})
+});
 
 gulp.task('copy-fonts', function() {
-	gulp.src('./src/bower_components/bootstrap-sass/assets/fonts/**/*.*').
+	gulp.src('./static/fonts/**/*.*').
 	pipe(gulp.dest('./dist/fonts/'));
 	browserSync.reload;
-})
+});
 
-gulp.task('test',function() {
-	//test
+gulp.task('copy-smartFox', function() {
+	gulp.src('./static/smartFox/SFS2X_API_JS.js').
+	pipe(gulp.dest('./dist/js/'));
+	browserSync.reload;
+});
+
+gulp.task('test', function() {
+    browserify({
+        entries: './test/tests.js',
+	debug: true
+    }).transform('babelify', { presets:['es2015','react']}).
+    bundle().on('error',gutil.log).
+    pipe(source('spec.js')).
+    pipe(gulp.dest('./test/dist/'));
 });
 
 /**
  * Aliases to run from CLI
  */
+ gulp.task('watch-test', function(){
+     gulp.watch(['./test/test-file/*.js'],['test']);
+ });
 
  gulp.task('copyes',[
 	 'copy-images',
-	 'copy-fonts'
+	 'copy-fonts',
+	 'copy-smartFox'
  ])
 
 gulp.task('compile', [
@@ -92,11 +107,6 @@ gulp.task('compile', [
 	'vendors-bundle',
 	'copyes',
 	'sass'
-]);
-
-gulp.task('test',[
-	'compile',
-	'test'
 ]);
 
 gulp.task('default', [
